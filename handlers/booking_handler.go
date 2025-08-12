@@ -1,9 +1,8 @@
-// # Handlers for booking endpoints
 package handlers
 
 import (
 	"WoodCraft-API/models"
-	"database/sql"
+	"WoodCraft-API/repository"
 	"net/http"
 	"time"
 
@@ -11,41 +10,26 @@ import (
 )
 
 type BookingHandler struct {
-	DB *sql.DB
+	repo *repository.BookingRepository
+}
+
+func NewBookingHandler(repo *repository.BookingRepository) *BookingHandler {
+	return &BookingHandler{repo: repo}
 }
 
 // CreateBooking - POST /bookings
 func (h *BookingHandler) CreateBooking(c echo.Context) error {
 	var booking models.Booking
 
-	// Bind JSON body to struct
 	if err := c.Bind(&booking); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 	}
 
-	// Set default values
 	booking.Status = "Pending"
 	booking.CreatedAt = time.Now()
 	booking.UpdatedAt = time.Now()
 
-	// Insert into database
-	query := `
-		INSERT INTO bookings (name, contact_info, address, service_id, date_time, notes, status, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id
-	`
-	err := h.DB.QueryRow(
-		query,
-		booking.Name,
-		booking.ContactInfo,
-		booking.Address,
-		booking.ServiceID,
-		booking.DateTime,
-		booking.Notes,
-		booking.Status,
-		booking.CreatedAt,
-		booking.UpdatedAt,
-	).Scan(&booking.ID)
-
+	err := h.repo.CreateBooking(&booking)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create booking"})
 	}
@@ -55,24 +39,21 @@ func (h *BookingHandler) CreateBooking(c echo.Context) error {
 
 // GetAllBookings - GET /bookings
 func (h *BookingHandler) GetAllBookings(c echo.Context) error {
-	rows, err := h.DB.Query("SELECT id, name, contact_info, address, service_id, date_time, notes, status, created_at, updated_at FROM bookings")
+	bookings, err := h.repo.GetAllBookings()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch bookings"})
 	}
-	defer rows.Close()
+	return c.JSON(http.StatusOK, bookings)
+}
 
-	var bookings []models.Booking
+// GetBookingByID - GET /bookings/:id
+func (h *BookingHandler) GetBookingByID(c echo.Context) error {
+	id := c.Param("id")
 
-	for rows.Next() {
-		var b models.Booking
-		if err := rows.Scan(
-			&b.ID, &b.Name, &b.ContactInfo, &b.Address, &b.ServiceID,
-			&b.DateTime, &b.Notes, &b.Status, &b.CreatedAt, &b.UpdatedAt,
-		); err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to parse bookings"})
-		}
-		bookings = append(bookings, b)
+	booking, err := h.repo.GetBookingByID(id)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"message": "Booking not found"})
 	}
 
-	return c.JSON(http.StatusOK, bookings)
+	return c.JSON(http.StatusOK, booking)
 }

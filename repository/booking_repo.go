@@ -1,4 +1,3 @@
-// DB queries for booking
 package repository
 
 import (
@@ -11,7 +10,6 @@ type BookingRepository struct {
 	DB *sql.DB
 }
 
-// CreateBooking inserts a new booking into the database
 func (r *BookingRepository) CreateBooking(booking *models.Booking) error {
 	booking.Status = "Pending"
 	booking.CreatedAt = time.Now()
@@ -36,7 +34,6 @@ func (r *BookingRepository) CreateBooking(booking *models.Booking) error {
 	).Scan(&booking.ID)
 }
 
-// GetAllBookings fetches all bookings from the database
 func (r *BookingRepository) GetAllBookings() ([]models.Booking, error) {
 	rows, err := r.DB.Query(`
 		SELECT id, name, contact_info, address, service_id, date_time, notes, status, created_at, updated_at
@@ -48,7 +45,6 @@ func (r *BookingRepository) GetAllBookings() ([]models.Booking, error) {
 	defer rows.Close()
 
 	var bookings []models.Booking
-
 	for rows.Next() {
 		var b models.Booking
 		if err := rows.Scan(
@@ -69,4 +65,25 @@ func (r *BookingRepository) GetAllBookings() ([]models.Booking, error) {
 	}
 
 	return bookings, nil
+}
+
+func (r *BookingRepository) GetBookingByID(id string) (models.Booking, error) {
+	var booking models.Booking
+	query := `
+		SELECT id, name, contact_info, address, service_id, date_time, notes, status, created_at, updated_at
+		FROM bookings WHERE id = $1
+	`
+	err := r.DB.QueryRow(query, id).Scan(
+		&booking.ID,
+		&booking.Name,
+		&booking.ContactInfo,
+		&booking.Address,
+		&booking.ServiceID,
+		&booking.DateTime,
+		&booking.Notes,
+		&booking.Status,
+		&booking.CreatedAt,
+		&booking.UpdatedAt,
+	)
+	return booking, err
 }

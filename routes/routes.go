@@ -2,14 +2,18 @@ package routes
 
 import (
 	"WoodCraft-API/handlers"
+	"WoodCraft-API/repository"
 	"database/sql"
 
 	"github.com/labstack/echo/v4"
 )
 
 func RegisterRoutes(e *echo.Echo, db *sql.DB) {
-	// Initialize Handlers
-	bookingHandler := &handlers.BookingHandler{DB: db}
+	// Initialize Repository
+	repo := &repository.BookingRepository{DB: db}
+	// Initialize Handler
+	bookingHandler := handlers.NewBookingHandler(repo)
+	// bookingHandler := &handlers.BookingHandler{DB: db}
 	// serviceHandler := &handlers.ServiceHandler{DB: db}
 	// aboutHandler := &handlers.AboutHandler{DB: db}
 	// galleryHandler := &handlers.GalleryHandler{DB: db}
@@ -17,8 +21,9 @@ func RegisterRoutes(e *echo.Echo, db *sql.DB) {
 	// =======================
 	// Booking Routes
 	// =======================
-	e.POST("/api/bookings", bookingHandler.CreateBooking) // Form submission
-	e.GET("/api/bookings", bookingHandler.GetAllBookings) // Fetch all bookings
+	e.POST("/api/bookings", bookingHandler.CreateBooking)     // Form submission
+	e.GET("/api/bookings", bookingHandler.GetAllBookings)     // Fetch all bookings
+	e.GET("/api/bookings/:id", bookingHandler.GetBookingByID) //Get data fromm id wise
 
 	// =======================
 	// Services Routes
