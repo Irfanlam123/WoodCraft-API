@@ -9,37 +9,36 @@ import (
 )
 
 func RegisterRoutes(e *echo.Echo, db *sql.DB) {
-	// Initialize Repository
-	repo := &repository.BookingRepository{DB: db}
-	// Initialize Handler
-	bookingHandler := handlers.NewBookingHandler(repo)
-	// bookingHandler := &handlers.BookingHandler{DB: db}
-	// serviceHandler := &handlers.ServiceHandler{DB: db}
-	// aboutHandler := &handlers.AboutHandler{DB: db}
-	// galleryHandler := &handlers.GalleryHandler{DB: db}
+	// =======================
+	// Booking Setup
+	// =======================
+	bookingRepo := &repository.BookingRepository{DB: db}
+	bookingHandler := handlers.NewBookingHandler(bookingRepo)
+
+	// =======================
+	// Services Setup
+	// =======================
+	serviceRepo := &repository.ServiceRepository{DB: db}
+	serviceHandler := handlers.NewServiceHandler(serviceRepo)
 
 	// =======================
 	// Booking Routes
 	// =======================
 	e.POST("/api/bookings", bookingHandler.CreateBooking)     // Form submission
 	e.GET("/api/bookings", bookingHandler.GetAllBookings)     // Fetch all bookings
-	e.GET("/api/bookings/:id", bookingHandler.GetBookingByID) //Get data fromm id wise
+	e.GET("/api/bookings/:id", bookingHandler.GetBookingByID) // Get data from ID
 
 	// =======================
 	// Services Routes
 	// =======================
-	// e.POST("/api/services", serviceHandler.CreateService)
-	// e.GET("/api/services", serviceHandler.GetAllServices)
+	e.GET("/api/services", serviceHandler.GetAllServices)
+	e.POST("/api/services", serviceHandler.AddService)
 
 	// =======================
-	// About / Contact Routes
+	// About / Contact Routes (TODO)
 	// =======================
-	// e.POST("/api/about", aboutHandler.CreateAbout)
-	// e.GET("/api/about", aboutHandler.GetAbout)
 
 	// =======================
-	// Gallery Routes
+	// Gallery Routes (TODO)
 	// =======================
-	// e.POST("/api/gallery", galleryHandler.CreateGalleryItem)
-	// e.GET("/api/gallery", galleryHandler.GetGalleryItems)
 }
