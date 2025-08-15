@@ -22,6 +22,20 @@ func RegisterRoutes(e *echo.Echo, db *sql.DB) {
 	serviceHandler := handlers.NewServiceHandler(serviceRepo)
 
 	// =======================
+	// Gallery Setup
+	// =======================
+
+	galleryRepo := &repository.GalleryRepository{DB: db}
+	galleryHandler := handlers.NewGalleryHandler(galleryRepo)
+
+	// =======================
+	// Gallery Routes
+	// =======================
+	e.POST("api//gallery", galleryHandler.CreateGallery)
+
+	e.GET("/api/gallery", galleryHandler.GetGallery)
+
+	// =======================
 	// Booking Routes
 	// =======================
 	e.POST("/api/bookings", bookingHandler.CreateBooking)     // Form submission
